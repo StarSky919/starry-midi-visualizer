@@ -1,0 +1,19 @@
+{
+  "name": "starry-midi-visualizer",
+  "version": "0.1.0",
+  "author": "StarSky919",
+  "repository": "https://github.com/StarSky919/starry-midi-visualizer",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "bin": {
+    "smv": "./src/cli/bin.js"
+  },
+  "scripts": {
+    "render": "node --max-old-space-size=4096 ./src/cli/index.js"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "progress": "^2.0.3"
+  }
+}
