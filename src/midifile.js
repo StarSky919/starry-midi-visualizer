@@ -60,7 +60,7 @@ export function parseMidi(arrayBuffer) {
 
     const track = new Track(data.tracks.length, arrayBuffer.subarray(pointer, pointer + trackLength));
     data.tracks.push(track);
-    data.noteCount += track.noteCount;
+    data.noteCount += track.notes.length;
     bar.tick({
       notes: data.noteCount,
     });

@@ -15,6 +15,10 @@ export class Track {
     this.tempoEvents = parseTempoEvents(events);
     this.notes = parseNotes(index, events);
   }
+
+  get noteCount() {
+    return this.notes.length;
+  }
 }
 
 export class Note {
