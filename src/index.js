@@ -114,28 +114,21 @@ export class StarryMidiVisualizer {
     console.log('----------------');
     console.log('StarryMidiVisualizer (Developed by StarSky919)');
 
-    this.renderer.pixelsPerBeat = this.renderer.height / 2 / this.tpqn * this.renderer.noteSpeed;
+    this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.renderer.noteSpeed;
     this.currentTime = -1000;
     const maxTime = this.songTime + 1000;
 
     console.log(`Midi时长: ${formatTime(this.songTime)} TPQN: ${this.tpqn}`);
     console.log(`视频分辨率: ${this.renderer.width}x${this.renderer.height} 视频帧率: ${this.renderer.fps}`);
     console.log(`音符流速: ${this.renderer.noteSpeed} 键盘高度: ${this.renderer.keysHeight} (~${this.renderer.kh.toFixed(2)}px)`);
+    console.log(`当前内存占用：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);
     console.log('----------------');
 
     console.log('正在进行音符预处理……');
-    this.notes.forEach(note => {
-      note.reset();
-      const key = this.renderer.allKeys[note.keyCode];
-      note.x = key.left;
-      note.h = note.duration * this.renderer.pixelsPerBeat;
-      if (note.h < 1) note.h = 1;
-      note.y = note.start * this.renderer.pixelsPerBeat;
-      note.isBlack = key.isBlack;
-    });
+    this.notes.forEach(note => note.reset());
     this.notes.sort((a, b) => a.start - b.start);
-    this.renderingNotes[0] = this.notes.filter(note => !note.isBlack);
-    this.renderingNotes[1] = this.notes.filter(note => note.isBlack);
+    this.renderingNotes[0] = this.notes.filter(note => !this.renderer.allKeys[note.keyCode].isBlack);
+    this.renderingNotes[1] = this.notes.filter(note => this.renderer.allKeys[note.keyCode].isBlack);
 
     const ffmpeg = spawn('ffmpeg', [
       '-f', 'image2pipe',

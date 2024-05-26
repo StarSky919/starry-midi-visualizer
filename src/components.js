@@ -10,7 +10,6 @@ export class Track {
   constructor(index, arrayBuffer) {
     const events = parseEvents(arrayBuffer);
     this.index = index;
-    this.events = events;
     this.duration = events[events.length - 1].tick;
     this.tempoEvents = parseTempoEvents(events);
     this.notes = parseNotes(index, events);

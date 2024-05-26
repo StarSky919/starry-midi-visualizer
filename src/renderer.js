@@ -91,11 +91,11 @@ export class Renderer {
   drawNotes(currentTick, notes, index) {
     this.ctx.scale(1, -1);
     this.ctx.translate(0, -this.height);
-    const ct = currentTick * this.pixelsPerBeat;
+    const ct = currentTick * this.pixelsPerTick;
     for (let i = index; i < notes.length; i++) {
       const note = notes[i];
       if (note.start <= currentTick) {
-        if (note.end < currentTick) {
+        if (note.start + note.duration < currentTick) {
           note.played = true;
           this.removeColor(note.keyCode, note.channel, note.start);
         } else if (!note.triggered) {
@@ -104,19 +104,21 @@ export class Renderer {
         }
       }
       const kw = this.allKeys[note.keyCode].isBlack ? this.bkw : this.wkw;
-      const y = note.y + this.kh - ct;
+      const h = Math.max(1, note.duration * this.pixelsPerTick);
+      const x = this.allKeys[note.keyCode].left;
+      const y = note.start * this.pixelsPerTick + this.kh - ct;
       if (y > this.height) break;
-      if (y + note.h < this.kh) continue;
+      if (y + h < this.kh) continue;
       this.ctx.fillStyle = channelColors[note.channel];
-      this.ctx.fillRect(note.x, y, kw, note.h);
+      this.ctx.fillRect(x, y, kw, h);
       if (this.border) {
         this.ctx.lineWidth = this.wkw * 0.0421875;
         this.ctx.strokeStyle = '#252525';
-        this.ctx.strokeRect(note.x, y, kw, note.h);
+        this.ctx.strokeRect(x, y, kw, h);
       } else if (y < this.kh) {
-        const percent = 1 - (this.kh - y) / note.h;
+        const percent = 1 - (this.kh - y) / h;
         this.ctx.fillStyle = `rgba(255, 255, 255, ${0.4 * percent})`;
-        this.ctx.fillRect(note.x, y, kw, note.h);
+        this.ctx.fillRect(x, y, kw, h);
       }
     }
     this.ctx.scale(1, -1);

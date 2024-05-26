@@ -210,7 +210,10 @@ export function parseTempoEvents(events) {
 
 export function parseNotes(trackIndex, events) {
   const temp = [];
-  for (const event of events) {
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    events[i] = null;
+    if (!Number.isFinite(event.keyCode)) continue;
     temp[event.keyCode] ??= [];
     temp[event.keyCode].push(event);
   }
@@ -233,7 +236,6 @@ export function parseNotes(trackIndex, events) {
         note.keyCode = noteOn.keyCode;
         note.velocity = noteOn.velocity;
         note.start = noteOn.tick;
-        note.end = noteOff.tick;
         note.duration = noteOff.tick - noteOn.tick;
         notes.push(note);
       }
