@@ -98,7 +98,7 @@ export function debounce(callback, delay) {
       clearTimeout(timeout);
       timeout = null;
     }, delay);
-  }
+  };
 }
 
 export function throttle(callback, delay) {
@@ -111,7 +111,7 @@ export function throttle(callback, delay) {
       timer = null;
       callback.apply(that, args);
     }, delay);
-  }
+  };
 }
 
 const p0 = (num, length = 2) => num.toString().padStart(length, '0');

@@ -154,7 +154,7 @@ export class StarryMidiVisualizer {
         let i = lastIndex[n];
         while (i < this.renderingNotes[n].length) {
           if (!this.renderingNotes[n][i].played) break;
-          i++
+          i++;
         }
         lastIndex[n] = i;
       }
