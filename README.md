@@ -2,6 +2,10 @@
 
 基于 Node.js 开发的 MIDI 可视化渲染器，支持包括 Android 在内的多种平台。
 
+[![Node.js](https://img.shields.io/badge/-Node.js-44cc11?style=flat-square&logo=Node.js)](https://nodejs.org/)
+[![npm](https://img.shields.io/npm/v/starry-midi-visualizer?style=flat-square)](https://www.npmjs.com/package/starry-midi-visualizer)
+[![GitHub](https://img.shields.io/github/license/StarSky919/starry-midi-visualizer?style=flat-square)](https://github.com/StarSky919/starry-midi-visualizer/blob/main/LICENSE)
+
 ## 安装
 
 ### 准备工作
