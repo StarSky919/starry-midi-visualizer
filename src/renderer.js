@@ -1,27 +1,36 @@
-import { search, throttle } from './utils.js';
+import { createCanvas } from 'canvas';
 import { Key } from './components.js';
 import { channelColors } from './index.js';
 
 export class Renderer {
-  constructor(smv, cav, { fps = 60, keysHeight = 6, noteSpeed = 1, border = false, background = '#000000' }) {
+  constructor(smv) {
+    const {
+      resolution,
+      framerate,
+      bgcolor,
+      keyh,
+      border,
+      notespeed,
+    } = smv.config;
+
     this.smv = smv;
-    this.cav = cav;
-    this.ctx = cav.getContext('2d');
+    this.cav = createCanvas(...resolution);
+    this.ctx = this.cav.getContext('2d');
+    this.width = this.cav.width;
+    this.height = this.cav.height;
+
+    this.framerate = framerate;
+    this.bgcolor = bgcolor;
+    this.keyh = keyh;
+    this.border = border;
+    this.notespeed = notespeed;
+
     this.allKeys = [];
     this.blackKeys = [];
     this.whiteKeys = [];
-    this.fps = fps;
-    this.keysHeight = keysHeight;
-    this.noteSpeed = noteSpeed;
-    this.border = border;
-    this.background = background;
-
-    this.width = this.cav.width;
-    this.height = this.cav.height;
     this.wkw = this.width / 75;
     this.bkw = this.wkw * 0.55;
-    this.kh = this.wkw * this.keysHeight;
-    this.bottom = this.height - this.kh;
+    this.bottom = this.height - this.keyh;
   }
 
   initialize() {
@@ -39,7 +48,7 @@ export class Renderer {
         case 6:
         case 8:
         case 10:
-          const bk = new Key(this.bkw, this.kh * 0.65, true),
+          const bk = new Key(this.bkw, this.keyh * 0.65, true),
             l = this.bkw / 2,
             m = keysMap[j],
             n = Math.floor((m + k * 5 - 1) / 5) * 7;
@@ -70,7 +79,7 @@ export class Renderer {
         case 7:
         case 9:
         case 11:
-          const wk = new Key(this.wkw, this.kh, false);
+          const wk = new Key(this.wkw, this.keyh, false);
           wk.left = this.wkw * (keysMap[j] + k * 7 - 1);
           this.allKeys.push(wk);
           this.whiteKeys.push(wk);
@@ -84,7 +93,7 @@ export class Renderer {
   }
 
   drawBackground() {
-    this.ctx.fillStyle = this.background;
+    this.ctx.fillStyle = this.bgcolor;
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
 
@@ -106,17 +115,17 @@ export class Renderer {
       const kw = this.allKeys[note.keyCode].isBlack ? this.bkw : this.wkw;
       const h = Math.max(1, note.duration * this.pixelsPerTick);
       const x = this.allKeys[note.keyCode].left;
-      const y = note.start * this.pixelsPerTick + this.kh - ct;
+      const y = note.start * this.pixelsPerTick + this.keyh - ct;
       if (y > this.height) break;
-      if (y + h < this.kh) continue;
+      if (y + h < this.keyh) continue;
       this.ctx.fillStyle = channelColors[note.channel];
       this.ctx.fillRect(x, y, kw, h);
       if (this.border) {
         this.ctx.lineWidth = this.wkw * 0.0421875;
         this.ctx.strokeStyle = '#252525';
         this.ctx.strokeRect(x, y, kw, h);
-      } else if (y < this.kh) {
-        const percent = 1 - (this.kh - y) / h;
+      } else if (y < this.keyh) {
+        const percent = 1 - (this.keyh - y) / h;
         this.ctx.fillStyle = `rgba(255, 255, 255, ${0.4 * percent})`;
         this.ctx.fillRect(x, y, kw, h);
       }
@@ -126,7 +135,7 @@ export class Renderer {
   }
 
   drawKeyboard() {
-    const h = this.kh / 30;
+    const h = this.keyh / 30;
     this.ctx.fillStyle = '#A02222';
     this.ctx.fillRect(0, this.bottom - h, this.width, h);
 

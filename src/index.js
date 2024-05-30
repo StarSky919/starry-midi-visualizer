@@ -2,10 +2,19 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { Writable } from 'node:stream';
 import ProgressBar from 'progress';
-import { createCanvas } from 'canvas';
 import { search, formatTime } from './utils.js';
 import { parseMidi } from './midifile.js';
 import { Renderer } from './renderer.js';
+
+const defaultConfig = {
+  resolution: [1920, 1080],
+  framerate: 60,
+  crf: 16,
+  bgcolor: '#000000',
+  keyh: 156,
+  border: false,
+  notespeed: 1,
+};
 
 export const allKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 export const blackKeys = ['C#', 'D#', 'F#', 'G#', 'A#'];
@@ -33,10 +42,15 @@ export class StarryMidiVisualizer {
   totalTicks = 0;
   songTime = 0;
   currentTime = 0;
+  config;
   renderer;
 
-  constructor(options) {
-    this.renderer = new Renderer(this, createCanvas(1920, 1080), options);
+  constructor(config) {
+    this.config = {
+      ...defaultConfig,
+      ...config,
+    };
+    this.renderer = new Renderer(this);
     this.renderer.initialize();
   }
 
@@ -114,14 +128,14 @@ export class StarryMidiVisualizer {
     console.log('----------------');
     console.log('StarryMidiVisualizer (Developed by StarSky919)');
 
-    this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.renderer.noteSpeed;
+    this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.config.notespeed;
     this.currentTime = -1000;
     const maxTime = this.songTime + 1000;
 
     console.log(`Midi时长: ${formatTime(this.songTime)} TPQN: ${this.tpqn}`);
-    console.log(`视频分辨率: ${this.renderer.width}x${this.renderer.height} 视频帧率: ${this.renderer.fps}`);
-    console.log(`音符流速: ${this.renderer.noteSpeed} 键盘高度: ${this.renderer.keysHeight} (~${this.renderer.kh.toFixed(2)}px)`);
-    console.log(`当前内存占用：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);
+    console.log(`视频分辨率: ${this.renderer.width}x${this.renderer.height} 视频帧率: ${this.config.framerate}`);
+    console.log(`音符流速: ${this.config.notespeed} 键盘高度: ${this.config.keyh}px`);
+    console.log(`已占用内存：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);
     console.log('----------------');
 
     console.log('正在进行音符预处理……');
@@ -132,20 +146,20 @@ export class StarryMidiVisualizer {
 
     const ffmpeg = spawn('ffmpeg', [
       '-f', 'image2pipe',
-      '-framerate', `${this.renderer.fps}`,
+      '-framerate', `${this.config.framerate}`,
       '-i', '-',
       '-c:v', 'libx264',
-      '-crf', '16',
+      '-crf', this.config.crf,
       '-preset', 'ultrafast',
       '-tune', 'zerolatency',
-      '-pix_fmt', 'yuvj420p',
+      '-pix_fmt', 'yuv420p',
       '-y',
       `${filename}`,
     ]);
 
     console.log('正在渲染和转换帧……');
     const startTime = Date.now();
-    const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.renderer.fps));
+    const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.config.framerate));
     const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
     const lastIndex = [0, 0];
     let renderedFrames = 0;
@@ -160,7 +174,7 @@ export class StarryMidiVisualizer {
       }
       this.renderer.render(this.currentTick, this.renderingNotes, lastIndex);
       ffmpeg.stdin.write(this.renderer.cav.toBuffer());
-      this.currentTime += 1000 / this.renderer.fps;
+      this.currentTime += 1000 / this.config.framerate;
       renderedFrames++;
 
       const percent = Math.floor(renderedFrames / totalFrames * 1e4) / 1e2;
@@ -194,7 +208,7 @@ export class StarryMidiVisualizer {
     }));
     ffmpeg.stderr.on('end', () => {
       if (lastFrames != renderedFrames) {
-        generateProgress.update(1,  {
+        generateProgress.update(1, {
           pct: '100.00',
           time: formatTime(Date.now() - startTime2),
         });

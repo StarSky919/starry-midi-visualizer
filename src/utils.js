@@ -88,32 +88,6 @@ export function search(array, value, prop) {
   return -1;
 }
 
-export function debounce(callback, delay) {
-  let timeout;
-  return function() {
-    clearTimeout(timeout);
-    const [that, args] = [this, arguments];
-    timeout = setTimeout(function() {
-      callback.apply(that, args);
-      clearTimeout(timeout);
-      timeout = null;
-    }, delay);
-  };
-}
-
-export function throttle(callback, delay) {
-  let timer;
-  return function() {
-    if (timer) { return; }
-    const [that, args] = [this, arguments];
-    timer = setTimeout(function() {
-      clearTimeout(timer);
-      timer = null;
-      callback.apply(that, args);
-    }, delay);
-  };
-}
-
 const p0 = (num, length = 2) => num.toString().padStart(length, '0');
 
 export function formatTime(ms) {

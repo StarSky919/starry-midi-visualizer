@@ -10,7 +10,7 @@
     "smv": "./src/cli/bin.js"
   },
   "scripts": {
-    "render": "node --max-old-space-size=4096 ./src/cli/script.js"
+    "render": "node --max-old-space-size=4096 ./src/cli/bin.js"
   },
   "dependencies": {
     "canvas": "^2.11.2",

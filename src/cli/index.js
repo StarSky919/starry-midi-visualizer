@@ -1,5 +1,5 @@
-function capitalize(source) {
-  return source.charAt(0).toUpperCase() + source.slice(1);
+function unique(arr) {
+  return Array.from(new Set(arr));
 }
 
 function uncapitalize(source) {
@@ -20,20 +20,20 @@ function optionError({ name, desc, syntax }, error) {
   console.log(
     `Invalid option '${name}'` +
     (error ? `: ${error}` : '') +
-    '\n\nUsage:\n    ' + syntax + (desc ? '  ' + desc : '')
+    '\n\nUsage:\n  ' + syntax + (desc ? '  ' + desc : '')
   );
   process.exit(0);
 }
 
 function printHelp({ _name, options }) {
-  const _options = Array.from(new Set(Object.values(options)));
+  const _options = unique(Object.values(options));
   const maxLength = Math.max(..._options.map(option => option.syntax.length));
   const formatted = _options.map(option => {
     const padded = option.syntax.padEnd(maxLength + 2, ' ');
-    return '    ' + padded + option.desc;
+    return '  ' + padded + option.desc;
   }).join('\n');
   console.log(
-    `Usage:\n    ${_name} [options] [arguments]` +
+    `Usage:\n  ${_name} [options] [arguments]` +
     (_options.length ? `\n\nOptions:\n${formatted}` : '')
   );
   process.exit(0);
@@ -59,19 +59,19 @@ export class CLI {
     this.option('version', '-v print version');
   }
 
-  option(name, def = '', { validate, fallback } = {}) {
+  option(name, def = '', { transform, fallback } = {}) {
     name = hyphenate(name);
 
     const option = {
       name,
-      validate,
+      transform,
       fallback,
     };
 
     let short, param, desc = [];
     for (const seg of def.split(/\s/)) {
-      if (/^-[a-z]$/i.test(seg)) short = seg.slice(1);
-      else if (/^\[[^\]]+\]|<[^>]+>$/.test(seg)) {
+      if (!short && /^-[a-z]$/i.test(seg)) short = seg.slice(1);
+      else if (!param && /^\[[^\]]+\]|<[^>]+>$/.test(seg)) {
         if (seg.startsWith('<')) option.required = true;
         param = seg.slice(1, -1);
       } else desc.push(seg);
@@ -89,7 +89,7 @@ export class CLI {
     return this;
   }
 
-  parse(argv = process.argv) {
+  async parse(argv = process.argv) {
     argv = argv.slice(2);
 
     const args = [];
@@ -132,8 +132,8 @@ export class CLI {
         }
 
         try {
-          const transform = option.validate || (arg => arg);
-          options[key] = transform(optArg);
+          const transform = option.transform || (arg => arg);
+          options[key] = await transform(optArg);
         } catch (error) {
           optionError(option, error);
         }
