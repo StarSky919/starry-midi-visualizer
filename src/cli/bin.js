@@ -22,6 +22,11 @@ function isNumber(src) {
   throw 'the value must be a number';
 }
 
+function isHexColor(src) {
+  if (/^((#|0x)[a-f0-9]{3}|(#|0x)[a-f0-9]{6})$/i.test(src)) return src.replace(/^0x/, '#');
+  throw 'please enter a correct value (e.g. 0x789ABC)'; 
+}
+
 async function isFile(src) {
   const fullPath = path.isAbsolute(src) ? src : path.resolve(process.cwd(), src);
   await fs.access(fullPath).catch(() => {
@@ -41,7 +46,6 @@ const pkgPath = path.resolve(import.meta.dirname, '../../package.json');
 const { version } = JSON.parse(await fs.readFile(pkgPath));
 cli.version(version);
 
-cli.option('crf', '<value> ffmpeg crf (default: 16)', { transform: isNumber });
 cli.option('resolution', '-r <value> output video resolution (default: 1920x1080)', {
   transform(src) {
     const [w, h] = src.split('x').map(Number);
@@ -50,15 +54,7 @@ cli.option('resolution', '-r <value> output video resolution (default: 1920x1080
   },
 });
 cli.option('framerate', '-f <fps> output video framerate (default: 60)', { transform: isNumber });
-cli.option('bgcolor', '-b <hex> background color (starts with \'0x\' or \'#\') (default: #000000)', {
-  async transform(src) {
-    if (/^((#|0x)[a-f0-9]{3}|(#|0x)[a-f0-9]{6})$/i.test(src)) return src.replace(/^0x/, '#');
-    throw 'please enter a correct value (e.g. 0x789ABC)'; 
-  },
-});
-cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: isNumber });
-cli.option('border', 'apply borders to notes and disable highlight');
-cli.option('notespeed', '-s <ratio> pixelsPerTick = videoHeight / 2 / TPQN * <ratio> (default: 1)', { transform: isNumber });
+cli.option('crf', '<value> ffmpeg crf (default: 16)', { transform: isNumber });
 cli.option('output', '-o <path> output video file (default: <input filename>.mp4)', {
   async transform(src) {
     const fullPath = path.isAbsolute(src) ? src : path.resolve(process.cwd(), src);
@@ -73,6 +69,11 @@ cli.option('output', '-o <path> output video file (default: <input filename>.mp4
     return fullPath;
   },
 });
+cli.option('bgcolor', '-b <hex> background color (starts with \'0x\' or \'#\') (default: #000000)', { transform: isHexColor });
+cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: isNumber });
+cli.option('line', '-l <hex> shows a colored line on keyboard (starts with \'0x\' or \'#\')', { transform: isHexColor });
+cli.option('border', 'apply borders to notes and disable highlight');
+cli.option('notespeed', '-s <ratio> pixelsPerTick = videoHeight / 2 / TPQN * <ratio> (default: 1)', { transform: isNumber });
 
 const { args, options } = await cli.parse();
 

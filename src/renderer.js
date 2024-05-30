@@ -9,6 +9,7 @@ export class Renderer {
       framerate,
       bgcolor,
       keyh,
+      line,
       border,
       notespeed,
     } = smv.config;
@@ -22,6 +23,7 @@ export class Renderer {
     this.framerate = framerate;
     this.bgcolor = bgcolor;
     this.keyh = keyh;
+    this.line = line;
     this.border = border;
     this.notespeed = notespeed;
 
@@ -135,9 +137,11 @@ export class Renderer {
   }
 
   drawKeyboard() {
-    const h = this.keyh / 30;
-    this.ctx.fillStyle = '#A02222';
-    this.ctx.fillRect(0, this.bottom - h, this.width, h);
+    if (this.line) {
+      const h = this.keyh / 30;
+      this.ctx.fillStyle = this.line;
+      this.ctx.fillRect(0, this.bottom - h, this.width, h);
+    }
 
     this.whiteKeys.forEach(key => this.drawKeys(key));
     this.blackKeys.forEach(key => this.drawKeys(key));

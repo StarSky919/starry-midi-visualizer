@@ -12,6 +12,7 @@ const defaultConfig = {
   crf: 16,
   bgcolor: '#000000',
   keyh: 156,
+  line: null, // '#A02222'
   border: false,
   notespeed: 1,
 };
