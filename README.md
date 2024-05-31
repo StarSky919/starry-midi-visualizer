@@ -87,11 +87,25 @@ Options:
   -f, --framerate <fps>     output video framerate (default: 60)
   --crf <value>             ffmpeg crf (default: 16)
   -o, --output <path>       output video file (default: <input filename>.mp4)
-  -b, --bgcolor <hex>       background color (starts with '0x' or '#') (default: #000000)
+  -b, --bgcolor <hex>       background color (default: 0x000000)
   -k, --keyh <pixels>       keyboard height (default: 156)
-  -l, --line <hex>          shows a colored line on keyboard (starts with '0x' or '#')
+  -l, --line <hex>          shows a colored line on keyboard
   --border                  apply borders to notes and disable highlight
   -s, --notespeed <ratio>   pixelsPerTick = videoHeight / 2 / TPQN * <ratio> (default: 1)
 ```
+
+例如：
+
+```
+smv song.mid
+```
+
+```
+smv ./Midis/song.mid -r 2560x1440 -b 0xC0C0C0 -k 208 --border -s 1.5 -o ./Videos/song.mp4
+```
+
+也可以不提供参数，此时程序将会扫描并列出当前目录下的所有 .mid 文件以供选择。
+
+![CLI example 1](./example_1.jpg)
 
 ### API
