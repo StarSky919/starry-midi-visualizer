@@ -19,12 +19,12 @@ function printAndExit(message) {
 function isNumber(src) {
   const value = +src;
   if (Number.isFinite(value)) return value;
-  throw 'the value must be a number';
+  throw 'please enter a number';
 }
 
 function isHexColor(src) {
   if (/^((#|0x)[a-f0-9]{3}|(#|0x)[a-f0-9]{6})$/i.test(src)) return src.replace(/^0x/, '#');
-  throw 'please enter a correct value (e.g. 0x789ABC)'; 
+  throw 'please enter a correct hex color (starts with \'0x\' or \'#\')';
 }
 
 async function isFile(src) {
@@ -37,6 +37,17 @@ async function isFile(src) {
     throw `'${fullPath}' is a directory`;
   }
   return fullPath;
+}
+
+function createRLI() {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return {
+    getInput: message => new Promise(resolve => rl.question(message, resolve)),
+    close: () => rl.close(),
+  };
 }
 
 const cwd = process.cwd();
@@ -64,14 +75,17 @@ cli.option('output', '-o <path> output video file (default: <input filename>.mp4
       if (stat.isDirectory()) {
         throw `'${fullPath}' is a directory`;
       }
-      throw `'${fullPath}' already exists`;
+      const { getInput, close } = createRLI();
+      const input = await getInput(`'${fullPath}' already exists, overwrite? [y/N] `);
+      if (input.toLowerCase() !== 'y') process.exit(0);
+      close();
     }
     return fullPath;
   },
 });
-cli.option('bgcolor', '-b <hex> background color (starts with \'0x\' or \'#\') (default: #000000)', { transform: isHexColor });
+cli.option('bgcolor', '-b <hex> background color (default: 0x000000)', { transform: isHexColor });
 cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: isNumber });
-cli.option('line', '-l <hex> shows a colored line on keyboard (starts with \'0x\' or \'#\')', { transform: isHexColor });
+cli.option('line', '-l <hex> shows a colored line on keyboard', { transform: isHexColor });
 cli.option('border', 'apply borders to notes and disable highlight');
 cli.option('notespeed', '-s <ratio> pixelsPerTick = videoHeight / 2 / TPQN * <ratio> (default: 1)', { transform: isNumber });
 
@@ -92,27 +106,24 @@ async function getFile() {
     console.log(`[${i}] ${midis[i]}`);
   }
 
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  const getInput = message => new Promise(resolve => rl.question(message, resolve));
+  const { getInput, close } = createRLI();
 
   while (true) {
-    let input = await getInput('Enter a number to select MIDI file, or leave blank to cancel: ');
+    let input = await getInput('Enter a number to select, or leave blank to cancel: ');
     if (!input) process.exit(0);
     input = +input;
     if (isNaN(input) || !inRange(input, 0, midis.length - 1)) {
       console.log('Please enter a right number');
       continue;
     }
-    rl.close();
+    close();
     return midis[input];
   }
 }
 
 const midiFile = await getFile();
 const fullPath = await isFile(midiFile).catch(printAndExit);
+
 const smv = new StarryMidiVisualizer(options);
 await smv.loadFile(fullPath);
 smv.render(options.output ?? `${path.basename(fullPath)}.mp4`);
