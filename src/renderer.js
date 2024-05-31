@@ -31,7 +31,7 @@ export class Renderer {
     this.blackKeys = [];
     this.whiteKeys = [];
     this.wkw = this.width / 75;
-    this.bkw = this.wkw * 0.55;
+    this.bkw = this.wkw * 0.5;
     this.bottom = this.height - this.keyh;
   }
 
