@@ -25,7 +25,7 @@ function optionError({ name, desc, syntax }, error) {
   process.exit(0);
 }
 
-function printHelp({ _name, options }) {
+function printHelp({ _name, _examples, options }) {
   const _options = unique(Object.values(options));
   const maxLength = Math.max(..._options.map(option => option.syntax.length));
   const formatted = _options.map(option => {
@@ -34,7 +34,8 @@ function printHelp({ _name, options }) {
   }).join('\n');
   console.log(
     `Usage:\n  ${_name} [options] [arguments]` +
-    (_options.length ? `\n\nOptions:\n${formatted}` : '')
+    (_options.length ? '\n\nOptions:\n' + formatted : '') +
+    (_examples.length ? '\n\nExamples:\n' + _examples.map(e => '  ' + e).join('\n') : '')
   );
   process.exit(0);
 }
@@ -47,6 +48,7 @@ function printVersion({ _version }) {
 export class CLI {
   _name;
   _version;
+  _examples = [];
   options = {};
 
   constructor(name) {
@@ -57,6 +59,10 @@ export class CLI {
   version(version) {
     this._version = version;
     this.option('version', '-v print version');
+  }
+
+  example(example) {
+    this._examples.push(example);
   }
 
   option(name, def = '', { transform, fallback } = {}) {
