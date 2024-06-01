@@ -133,7 +133,7 @@ export class StarryMidiVisualizer {
     this.currentTime = -1000;
     const maxTime = this.songTime + 1000;
 
-    console.log(`Midi时长: ${formatTime(this.songTime)} TPQN: ${this.tpqn}`);
+    console.log(`MIDI 时长: ${formatTime(this.songTime)} TPQN: ${this.tpqn}`);
     console.log(`视频分辨率: ${this.renderer.width}x${this.renderer.height} 视频帧率: ${this.config.framerate}`);
     console.log(`音符流速: ${this.config.notespeed} 键盘高度: ${this.config.keyh}px`);
     console.log(`已占用内存：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);

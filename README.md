@@ -10,7 +10,7 @@
 
 ### 准备工作
 
-#### Windows / macOS / Linux
+#### Windows / Linux / macOS
 
 1. 下载并安装 [Node.js](https://nodejs.org/) (最低 v18，建议使用 LTS 版本)。
 
@@ -32,7 +32,7 @@ ffmpeg -version
 
 1. 下载并安装 [Termux](https://github.com/termux/termux-app)。
 
-2. 在 Termux 中依次执行以下命令 (如果加载速度过慢，请使用 `termux-change-repo` 更换国内源)：
+2. 在 Termux 中依次执行以下命令 (若加载速度过慢，请使用 `termux-change-repo` 更换国内源)：
 
 ```bash
 # 更新软件包
@@ -50,7 +50,7 @@ npm install -g yarn
 
 ### 选择安装方式
 
-#### 全局安装
+#### 全局安装 (推荐)
 
 - 提供命令行工具
 
@@ -60,11 +60,11 @@ npm install -g yarn
 yarn global add starry-midi-visualizer
 ```
 
-#### 作为依赖
+#### 作为依赖 (尚未完善)
 
-- 安装到您的 Node.js 项目中
+- 安装到 Node.js 项目中
 
-- 通过 API 进行二次开发 (尚未完善)
+- 通过 API 进行二次开发
 
 ```bash
 yarn add starry-midi-visualizer
@@ -72,9 +72,9 @@ yarn add starry-midi-visualizer
 
 ## 使用方法
 
-### CLI
-
 全局安装后，可以使用 `smv` 命令。
+
+若不提供参数，程序将会扫描并列出当前目录下的所有 .mid 文件以供选择。
 
 ```
 Usage:
@@ -91,21 +91,35 @@ Options:
   -k, --keyh <pixels>       keyboard height (default: 156)
   -l, --line <hex>          shows a colored line on keyboard
   --border                  apply borders to notes and disable highlight
-  -s, --notespeed <ratio>   pixelsPerTick = videoHeight / 2 / TPQN * <ratio> (default: 1)
+  -s, --notespeed <ratio>   pixPerTick = vheight / 2 / tpqn * <ratio> (default: 1)
+
+Examples:
+  smv song.mid
+  smv -r 2560x1440 -k 208 -s 1.5
+  smv song.mid -b 0xC0C0C0 --border -o ../Videos/song.mp4
 ```
 
-例如：
+### 设置内存限制
 
+Node.js 默认的内存限制在 1 GB 左右，能够加载约 900 万音符的 MIDI 文件。设置环境变量可以提升此限制。
+
+> 以下命令设置的环境变量只在当前 Shell 窗口有效。
+> 若需要永久生效，请使用 `setx` 命令 (Windows) 或是修改配置文件。
+
+#### Windows
+
+```bash
+# 设置内存限制为 4096 MB
+set NODE_OPTIONS="--max-old-space-size=4096"
 ```
-smv song.mid
+
+#### Linux / macOS / Android
+
+```bash
+# 设置内存限制为 4096 MB
+export NODE_OPTIONS="--max-old-space-size=4096"
 ```
 
-```
-smv ./Midis/song.mid -r 2560x1440 -b 0xC0C0C0 -k 208 --border -s 1.5 -o ./Videos/song.mp4
-```
+## API 参考
 
-也可以不提供参数，此时程序将会扫描并列出当前目录下的所有 .mid 文件以供选择。
-
-![CLI example 1](./example_1.jpg)
-
-### API
+🤔

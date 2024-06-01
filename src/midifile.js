@@ -13,7 +13,7 @@ import { Track, Note } from './components.js';
 import { EventTypes } from './index.js';
 
 function error(msg) {
-  return new Error(`无效的Midi文件${msg ? `: ${msg}` : ''}`);
+  return new Error(`无效的 MIDI 文件${msg ? `: ${msg}` : ''}`);
 }
 
 export function parseMidi(arrayBuffer) {
