@@ -137,14 +137,14 @@ export class Renderer {
   }
 
   drawKeyboard() {
+    this.whiteKeys.forEach(key => this.drawKeys(key));
+    this.blackKeys.forEach(key => this.drawKeys(key));
+
     if (this.line) {
       const h = this.keyh / 30;
       this.ctx.fillStyle = this.line;
-      this.ctx.fillRect(0, this.bottom - h, this.width, h);
+      this.ctx.fillRect(0, this.bottom - h / 2, this.width, h);
     }
-
-    this.whiteKeys.forEach(key => this.drawKeys(key));
-    this.blackKeys.forEach(key => this.drawKeys(key));
   }
 
   drawKeys(key) {
