@@ -13,7 +13,7 @@ import { Track, Note } from './components.js';
 import { EventTypes } from './index.js';
 
 function error(msg) {
-  return new Error(`无效的 MIDI 文件${msg ? `: ${msg}` : ''}`);
+  return new Error(`Invalid MIDI file${msg ? `: ${msg}` : ''}`);
 }
 
 export function parseMidi(arrayBuffer) {
@@ -25,7 +25,7 @@ export function parseMidi(arrayBuffer) {
   let pointer = 0;
 
   const size = Math.floor(data.size / 1024 / 1024 * 100) / 100;
-  console.log(`文件大小: ${size}M (${data.size})`);
+  console.log(`File size: ${size}M (${data.size})`);
 
   if (bytesToString(arrayBuffer.subarray(pointer, pointer + 4)) != 'MThd') {
     throw error();
@@ -48,7 +48,7 @@ export function parseMidi(arrayBuffer) {
   data.tpqn = bytesToDec(arrayBuffer.subarray(pointer, pointer + 2));
   pointer += 2;
 
-  const bar = new ProgressBar('读取音轨: :current / :total (音符数：:notes)', { total: data.trackCount, stream: process.stdout });
+  const bar = new ProgressBar('Loading tracks: :current / :total (Total notes so far: :notes)', { total: data.trackCount, stream: process.stdout });
   while (pointer < arrayBuffer.length) {
     if (bytesToString(arrayBuffer.subarray(pointer, pointer + 4)) != 'MTrk') {
       throw error();

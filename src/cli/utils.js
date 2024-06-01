@@ -36,10 +36,10 @@ export async function isDirectory(path) {
 export async function checkFile(src) {
   const fullPath = resolvePath(src);
   await fs.access(fullPath).catch(() => {
-    throw `'${fullPath}' does not exists`;
+    throw `Error: '${fullPath}' does not exists`;
   });
   if (await isDirectory(fullPath)) {
-    throw `'${fullPath}' is a directory`;
+    throw `Error: '${fullPath}' is a directory`;
   }
   return fullPath;
 }

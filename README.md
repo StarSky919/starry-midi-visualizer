@@ -91,7 +91,7 @@ Options:
   -k, --keyh <pixels>       keyboard height (default: 156)
   -l, --line <hex>          shows a colored line on keyboard
   --border                  apply borders to notes and disable highlight
-  -s, --notespeed <ratio>   pixPerTick = vheight / 2 / tpqn * <ratio> (default: 1)
+  -s, --notespeed <ratio>   pixPerTick = vHeight / 2 / TPQN * <ratio> (default: 1)
 
 Examples:
   smv song.mid
@@ -103,8 +103,7 @@ Examples:
 
 Node.js 默认的内存限制在 1 GB 左右，能够加载约 900 万音符的 MIDI 文件。设置环境变量可以提升此限制。
 
-> 以下命令设置的环境变量只在当前 Shell 窗口有效。
-> 若需要永久生效，请使用 `setx` 命令 (Windows) 或是修改配置文件。
+> 以下命令设置的环境变量只在当前 Shell 窗口有效。若需要永久生效，请使用 `setx` 命令 (Windows) 或是修改配置文件。
 
 #### Windows
 

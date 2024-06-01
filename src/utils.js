@@ -97,3 +97,18 @@ export function formatTime(ms) {
   const m = Math.floor(seconds);
   return p0(m) + ':' + p0(s);
 }
+
+export function formatOutput(...lines) {
+  lines = lines.join('\n').split('\n');
+  lines = lines.map(line => line.split('\t'));
+  const lengths = [];
+  for (let i = 0; i < Math.max(...lines.map(line => line.length)); i++) {
+    lengths[i] = Math.max(...lines.map(line => line[i]?.length ?? 0));
+  }
+  return lines.map(line => {
+    for (let i = 0; i < line.length - 1; i++) {
+      line[i] = line[i].padEnd(lengths[i] + 2, ' ');
+    }
+    return line.join('');
+  }).join('\n');
+}

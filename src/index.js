@@ -1,10 +1,14 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Writable } from 'node:stream';
 import ProgressBar from 'progress';
-import { search, formatTime } from './utils.js';
+import { search, formatTime, formatOutput } from './utils.js';
 import { parseMidi } from './midifile.js';
 import { Renderer } from './renderer.js';
+
+const pkgPath = path.resolve(import.meta.dirname, '../package.json');
+const { version } = JSON.parse(await fs.readFile(pkgPath));
 
 const defaultConfig = {
   resolution: [1920, 1080],
@@ -28,9 +32,11 @@ export const EventTypes = {
   NOTE_OFF: 'Note Off',
 };
 
-const barFormat = '当前进度: :pct% (:current / :total 帧) 已用时: :time';
+const barFormat = 'Progress: :pct% (:current of :total frames) Time spent: :time';
 
 export class StarryMidiVisualizer {
+  static VERSION = version;
+
   fileLoaded = false;
   size = 0;
   tpqn = 0;
@@ -126,20 +132,22 @@ export class StarryMidiVisualizer {
       throw new Error('No file was loaded');
     }
 
-    console.log('----------------');
-    console.log('StarryMidiVisualizer (Developed by StarSky919)');
+    console.log('================');
+    console.log(`StarryMidiVisualizer ${version}`);
 
     this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.config.notespeed;
     this.currentTime = -1000;
     const maxTime = this.songTime + 1000;
 
-    console.log(`MIDI 时长: ${formatTime(this.songTime)} TPQN: ${this.tpqn}`);
-    console.log(`视频分辨率: ${this.renderer.width}x${this.renderer.height} 视频帧率: ${this.config.framerate}`);
-    console.log(`音符流速: ${this.config.notespeed} 键盘高度: ${this.config.keyh}px`);
-    console.log(`已占用内存：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`);
-    console.log('----------------');
+    console.log(formatOutput(
+      `Duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
+      `Resolution: ${this.renderer.width}x${this.renderer.height}\tFramerate: ${this.config.framerate}fps`,
+      `Note speed: ${this.config.notespeed}\tKeyboard height: ${this.config.keyh}px`,
+      `RAM used：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}M`,
+    ));
+    console.log('================');
 
-    console.log('正在进行音符预处理……');
+    console.log('Preprocessing notes...');
     this.notes.forEach(note => note.reset());
     this.notes.sort((a, b) => a.start - b.start);
     this.renderingNotes[0] = this.notes.filter(note => !this.renderer.allKeys[note.keyCode].isBlack);
@@ -158,7 +166,7 @@ export class StarryMidiVisualizer {
       `${filename}`,
     ]);
 
-    console.log('正在渲染和转换帧……');
+    console.log('Rendering frames...');
     const startTime = Date.now();
     const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.config.framerate));
     const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
@@ -186,7 +194,7 @@ export class StarryMidiVisualizer {
     }
     if (!renderProgress.complete) renderProgress.terminate();
 
-    console.log('正在生成视频……');
+    console.log('Generating video...');
     const startTime2 = Date.now();
     const generateProgress = new ProgressBar(barFormat, { total: renderedFrames, stream: process.stdout });
     let lastFrames;
@@ -214,7 +222,7 @@ export class StarryMidiVisualizer {
           time: formatTime(Date.now() - startTime2),
         });
       }
-      console.log(`视频已保存至 ${filename}`);
+      console.log(`Completed. Saved to '${filename}'`);
     });
     ffmpeg.stdin.end();
   }

@@ -18,9 +18,7 @@ import StarryMidiVisualizer from '../index.js';
 const cwd = process.cwd();
 const cli = createCLI('smv');
 
-const pkgPath = path.resolve(import.meta.dirname, '../../package.json');
-const { version } = JSON.parse(await fs.readFile(pkgPath));
-cli.version(version);
+cli.version(StarryMidiVisualizer.VERSION);
 
 cli.option('resolution', '-r <value> output video resolution (default: 1920x1080)', {
   transform(src) {
@@ -37,7 +35,7 @@ cli.option('output', '-o <path> output video file (default: <input filename>.mp4
     const exists = await fs.access(fullPath).then(() => true).catch(() => false);
     if (exists) {
       if (await isDirectory(fullPath)) {
-        throw `'${fullPath}' is a directory`;
+        throw `Error: '${fullPath}' is a directory`;
       }
       const { getInput, close } = createRLI();
       const input = await getInput(`'${fullPath}' already exists, overwrite? [y/N] `);
@@ -51,7 +49,7 @@ cli.option('bgcolor', '-b <hex> background color (default: 0x000000)', { transfo
 cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: checkNumber(0) });
 cli.option('line', '-l <hex> shows a colored line on keyboard', { transform: checkHexColor });
 cli.option('border', 'apply borders to notes and disable highlight');
-cli.option('notespeed', '-s <ratio> pixPerTick = vheight / 2 / tpqn * <ratio> (default: 1)', { transform: checkNumber(0.05) });
+cli.option('notespeed', '-s <ratio> pixPerTick = vHeight / 2 / TPQN * <ratio> (default: 1)', { transform: checkNumber(0.05) });
 
 cli.example('smv song.mid');
 cli.example('smv -r 2560x1440 -k 208 -s 1.5');
@@ -85,6 +83,7 @@ async function getFile() {
       continue;
     }
     close();
+    console.log('================');
     return midis[input];
   }
 }

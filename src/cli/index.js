@@ -27,9 +27,9 @@ function optionError({ name, desc, syntax }, error) {
 
 function printHelp({ _name, _examples, options }) {
   const _options = unique(Object.values(options));
-  const maxLength = Math.max(..._options.map(option => option.syntax.length));
+  const longest = Math.max(..._options.map(option => option.syntax.length));
   const formatted = _options.map(option => {
-    const padded = option.syntax.padEnd(maxLength + 2, ' ');
+    const padded = option.syntax.padEnd(longest + 2, ' ');
     return '  ' + padded + option.desc;
   }).join('\n');
   console.log(
