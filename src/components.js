@@ -20,23 +20,6 @@ export class Track {
   }
 }
 
-export class Note {
-  channel;
-  track;
-  keyCode;
-  velocity;
-  start;
-  end;
-  duration;
-  triggered = false;
-  played = false;
-
-  reset() {
-    this.triggered = false;
-    this.played = false;
-  }
-}
-
 export class Key {
   width;
   height;

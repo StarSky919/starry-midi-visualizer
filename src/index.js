@@ -49,6 +49,7 @@ export class StarryMidiVisualizer {
   totalTicks = 0;
   songTime = 0;
   currentTime = 0;
+  firstPlay = true;
   config;
   renderer;
 
@@ -148,10 +149,13 @@ export class StarryMidiVisualizer {
     console.log('================');
 
     console.log('Preprocessing notes...');
-    this.notes.forEach(note => note.reset());
+    if (!this.firstPlay) this.notes.forEach(note => {
+      note.triggered = note.played = false;
+    });
     this.notes.sort((a, b) => a.start - b.start);
     this.renderingNotes[0] = this.notes.filter(note => !this.renderer.allKeys[note.keyCode].isBlack);
     this.renderingNotes[1] = this.notes.filter(note => this.renderer.allKeys[note.keyCode].isBlack);
+    this.firstPlay = false;
 
     const ffmpeg = spawn('ffmpeg', [
       '-f', 'image2pipe',

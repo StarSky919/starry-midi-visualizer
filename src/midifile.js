@@ -9,7 +9,7 @@ import {
   bytesToString,
   readVLQ,
 } from './utils.js';
-import { Track, Note } from './components.js';
+import { Track } from './components.js';
 import { EventTypes } from './index.js';
 
 function error(msg) {
@@ -230,13 +230,14 @@ export function parseNotes(trackIndex, events) {
       );
       if (offIndex !== -1) {
         const noteOff = noteOffEvents.splice(offIndex, 1)[0];
-        const note = new Note();
+        const note = {};
         note.channel = noteOn.channel;
         note.track = trackIndex;
         note.keyCode = noteOn.keyCode;
         note.velocity = noteOn.velocity;
         note.start = noteOn.tick;
         note.duration = noteOff.tick - noteOn.tick;
+        note.triggered = note.played = false;
         notes.push(note);
       }
     }
