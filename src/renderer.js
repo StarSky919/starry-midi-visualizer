@@ -117,7 +117,7 @@ export class Renderer {
         this.ctx.strokeRect(x, y, kw, h);
       } else if (y < this.keyh) {
         const percent = 1 - (this.keyh - y) / h;
-        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.4 * percent})`;
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.5 * percent})`;
         this.ctx.fillRect(x, y, kw, h);
       }
     }
@@ -168,7 +168,7 @@ export class Renderer {
         // not pressed black keys
       }
     } else {
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
       this.ctx.fillRect(key.left, y2, key.width, h);
     }
 
