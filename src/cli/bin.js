@@ -48,6 +48,12 @@ cli.option('output', '-o <path> output video file (default: <input filename>.mp4
 cli.option('bgcolor', '-b <hex> background color (default: 0x000000)', { transform: checkHexColor });
 cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: checkNumber(0) });
 cli.option('line', '-l <hex> shows a colored line on keyboard', { transform: checkHexColor });
+cli.option('colormode', '-c <mode> note color based on \'channel\' or \'track\' (default: channel)', {
+  transform(src) {
+    if (['track', 'channel'].includes(src.toLowerCase())) return src;
+    throw 'the value must be \'channel\' or \'track\'';
+  },
+});
 cli.option('border', 'apply borders to notes and disable highlight');
 cli.option('notespeed', '-s <ratio> pixPerTick = vHeight / 2 / TPQN * <ratio> (default: 1)', { transform: checkNumber(0.05) });
 

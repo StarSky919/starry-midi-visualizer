@@ -9,8 +9,7 @@ import {
   bytesToString,
   readVLQ,
 } from './utils.js';
-import { Track } from './components.js';
-import { EventTypes } from './index.js';
+import { EventTypes, Track } from './components.js';
 
 function error(msg) {
   return new Error(`Invalid MIDI file${msg ? `: ${msg}` : ''}`);

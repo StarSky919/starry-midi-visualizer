@@ -1,5 +1,14 @@
 import { parseEvents, parseNotes, parseTempoEvents } from './midifile.js';
 
+export const Colors = ['#FF0000', '#FF4D00', '#FF9900', '#FFD700', '#FFFF00', '#D7FF00', '#99FF00', '#4DFF00', '#00FF00', '#00FF4D', '#00FF99', '#00FFD7', '#00FFFF', '#4D00FF', '#9900FF', '#D700FF'];
+
+export const EventTypes = {
+  SET_TEMPO: 'Set Tempo',
+  END_OF_TRACK: 'End of Track',
+  NOTE_ON: 'Note On',
+  NOTE_OFF: 'Note Off',
+};
+
 export class Track {
   index;
   events;

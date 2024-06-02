@@ -1,6 +1,5 @@
 import { createCanvas } from 'canvas';
 import { Key } from './components.js';
-import { channelColors } from './index.js';
 
 export class Renderer {
   constructor(smv) {
@@ -10,6 +9,7 @@ export class Renderer {
       bgcolor,
       keyh,
       line,
+      colormode,
       border,
       notespeed,
     } = smv.config;
@@ -24,15 +24,16 @@ export class Renderer {
     this.bgcolor = bgcolor;
     this.keyh = keyh;
     this.line = line;
+    this.colormode = colormode;
     this.border = border;
     this.notespeed = notespeed;
+    this.bottom = this.height - this.keyh;
 
     this.allKeys = [];
     this.blackKeys = [];
     this.whiteKeys = [];
     this.wkw = this.width / 75;
     this.bkw = this.wkw * 0.5;
-    this.bottom = this.height - this.keyh;
   }
 
   initialize() {
@@ -40,52 +41,39 @@ export class Renderer {
     this.blackKeys = [];
     this.whiteKeys = [];
 
-    const keysMap = [1, 1, 2, 2, 3, 4, 3, 5, 4, 6, 5, 7];
+    const keysMap = [0, 0, 1, 1, 2, 3, 2, 4, 3, 5, 4, 6];
     for (let i = 0; i < 128; i++) {
-      const j = i % 12,
-        k = Math.floor(i / 12);
-      switch (j) {
-        case 1:
-        case 3:
-        case 6:
-        case 8:
-        case 10:
-          const bk = new Key(this.bkw, this.keyh * 0.65, true),
-            l = this.bkw / 2,
-            m = keysMap[j],
-            n = Math.floor((m + k * 5 - 1) / 5) * 7;
-          switch (m) {
-            case 1:
-              bk.left = this.wkw * (1 + n) - l - l * 0.375;
-              break;
-            case 2:
-              bk.left = this.wkw * (2 + n) - l + l * 0.375;
-              break;
-            case 3:
-              bk.left = this.wkw * (4 + n) - l - l * 0.375;
-              break;
-            case 4:
-              bk.left = this.wkw * (5 + n) - l;
-              break;
-            case 5:
-              bk.left = this.wkw * (6 + n) - l + l * 0.375;
-              break;
-          }
-          this.allKeys.push(bk);
-          this.blackKeys.push(bk);
-          break;
-        case 0:
-        case 2:
-        case 4:
-        case 5:
-        case 7:
-        case 9:
-        case 11:
-          const wk = new Key(this.wkw, this.keyh, false);
-          wk.left = this.wkw * (keysMap[j] + k * 7 - 1);
-          this.allKeys.push(wk);
-          this.whiteKeys.push(wk);
-          break;
+      const j = i % 12;
+      const k = Math.floor(i / 12);
+      if ([1, 3, 6, 8, 10].includes(j)) {
+        const bk = new Key(this.bkw, this.keyh * 0.65, true),
+          l = this.bkw / 2,
+          m = keysMap[j],
+          n = Math.floor((m + k * 5) / 5) * 7;
+        switch (m) {
+          case 0:
+            bk.left = this.wkw * (1 + n) - l - l * 0.375;
+            break;
+          case 1:
+            bk.left = this.wkw * (2 + n) - l + l * 0.375;
+            break;
+          case 2:
+            bk.left = this.wkw * (4 + n) - l - l * 0.375;
+            break;
+          case 3:
+            bk.left = this.wkw * (5 + n) - l;
+            break;
+          case 4:
+            bk.left = this.wkw * (6 + n) - l + l * 0.375;
+            break;
+        }
+        this.allKeys.push(bk);
+        this.blackKeys.push(bk);
+      } else {
+        const wk = new Key(this.wkw, this.keyh, false);
+        wk.left = this.wkw * (keysMap[j] + k * 7);
+        this.allKeys.push(wk);
+        this.whiteKeys.push(wk);
       }
     }
 
@@ -105,13 +93,14 @@ export class Renderer {
     const ct = currentTick * this.pixelsPerTick;
     for (let i = index; i < notes.length; i++) {
       const note = notes[i];
+      const noteColor = this.smv.tracks[note.track].color;
       if (note.start <= currentTick) {
         if (note.start + note.duration < currentTick) {
           note.played = true;
-          this.removeColor(note.keyCode, note.channel, note.start);
+          this.removeColor(note.keyCode, note[this.colormode], note.start);
         } else if (!note.triggered) {
           note.triggered = true;
-          this.addColor(note.keyCode, note.channel, note.start, channelColors[note.channel]);
+          this.addColor(note.keyCode, note[this.colormode], note.start, noteColor);
         }
       }
       const kw = this.allKeys[note.keyCode].isBlack ? this.bkw : this.wkw;
@@ -120,7 +109,7 @@ export class Renderer {
       const y = note.start * this.pixelsPerTick + this.keyh - ct;
       if (y > this.height) break;
       if (y + h < this.keyh) continue;
-      this.ctx.fillStyle = channelColors[note.channel];
+      this.ctx.fillStyle = noteColor;
       this.ctx.fillRect(x, y, kw, h);
       if (this.border) {
         this.ctx.lineWidth = this.wkw * 0.0421875;

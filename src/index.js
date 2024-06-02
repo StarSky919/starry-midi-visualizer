@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { Writable } from 'node:stream';
 import ProgressBar from 'progress';
 import { search, formatTime, formatOutput } from './utils.js';
+import { Colors } from './components.js';
 import { parseMidi } from './midifile.js';
 import { Renderer } from './renderer.js';
 
@@ -17,19 +18,9 @@ const defaultConfig = {
   bgcolor: '#000000',
   keyh: 156,
   line: null, // '#A02222'
+  colormode: 'channel',
   border: false,
   notespeed: 1,
-};
-
-export const allKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-export const blackKeys = ['C#', 'D#', 'F#', 'G#', 'A#'];
-export const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-export const channelColors = ['#FF0000', '#FF4D00', '#FF9900', '#FFD700', '#FFFF00', '#D7FF00', '#99FF00', '#4DFF00', '#00FF00', '#00FF4D', '#00FF99', '#00FFD7', '#00FFFF', '#4D00FF', '#9900FF', '#D700FF'];
-export const EventTypes = {
-  SET_TEMPO: 'Set Tempo',
-  END_OF_TRACK: 'End of Track',
-  NOTE_ON: 'Note On',
-  NOTE_OFF: 'Note Off',
 };
 
 const barFormat = 'Progress: :pct% (:current of :total frames) Time spent: :time';
@@ -74,6 +65,7 @@ export class StarryMidiVisualizer {
     this.tracks = tracks;
     this.noteCount = noteCount;
     this.tracks.forEach(track => {
+      track.color = Colors[track.index % Colors.length];
       track.tempoEvents.forEach(event => this.tempos.push(event));
       track.notes.forEach(note => this.notes.push(note));
     });
@@ -144,7 +136,7 @@ export class StarryMidiVisualizer {
       `Duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
       `Resolution: ${this.renderer.width}x${this.renderer.height}\tFramerate: ${this.config.framerate}fps`,
       `Note speed: ${this.config.notespeed}\tKeyboard height: ${this.config.keyh}px`,
-      `RAM used：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}M`,
+      // `RAM used：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}M`,
     ));
     console.log('================');
 
