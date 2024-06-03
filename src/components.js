@@ -1,6 +1,9 @@
 import { parseEvents, parseNotes, parseTempoEvents } from './midifile.js';
 
-export const Colors = ['#FF0000', '#FF4D00', '#FF9900', '#FFD700', '#FFFF00', '#D7FF00', '#99FF00', '#4DFF00', '#00FF00', '#00FF4D', '#00FF99', '#00FFD7', '#00FFFF', '#4D00FF', '#9900FF', '#D700FF'];
+export const Colors = [
+  'hsl(0deg 100% 50%)', 'hsl(22.5deg 100% 50%)', 'hsl(45deg 100% 50%)', 'hsl(67.5deg 100% 50%)', 'hsl(90deg 100% 50%)', 'hsl(112.5deg 100% 50%)', 'hsl(135deg 100% 50%)', 'hsl(157.5deg 100% 50%)', 'hsl(180deg 100% 50%)', 'hsl(202.5deg 100% 50%)', 'hsl(225deg 100% 50%)', 'hsl(247.5deg 100% 50%)', 'hsl(270deg 100% 50%)', 'hsl(292.5deg 100% 50%)', 'hsl(315deg 100% 50%)', 'hsl(337.5deg 100% 50%)',
+  'hsl(0deg 100% 75%)', 'hsl(22.5deg 100% 75%)', 'hsl(45deg 100% 75%)', 'hsl(67.5deg 100% 75%)', 'hsl(90deg 100% 75%)', 'hsl(112.5deg 100% 75%)', 'hsl(135deg 100% 75%)', 'hsl(157.5deg 100% 75%)', 'hsl(180deg 100% 75%)', 'hsl(202.5deg 100% 75%)', 'hsl(225deg 100% 75%)', 'hsl(247.5deg 100% 75%)', 'hsl(270deg 100% 75%)', 'hsl(292.5deg 100% 75%)', 'hsl(315deg 100% 75%)', 'hsl(337.5deg 100% 75%)',
+];
 
 export const EventTypes = {
   SET_TEMPO: 'Set Tempo',
