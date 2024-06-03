@@ -22,6 +22,7 @@ const defaultConfig = {
   border: false,
   notespeed: 1,
   starttime: -1,
+  duration: null,
 };
 
 const barFormat = 'Progress: :pct% (:current of :total frames) Time spent: :time';
@@ -129,10 +130,10 @@ export class StarryMidiVisualizer {
 
     this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.config.notespeed;
     this.currentTime = this.config.starttime * 1000;
-    const maxTime = this.songTime + 1000;
+    const maxTime = this.config.duration ? (this.currentTime + this.config.duration * 1000) : (this.songTime + 1000);
 
     console.log(formatOutput(
-      `Duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
+      `MIDI duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
       `Resolution: ${this.renderer.width}x${this.renderer.height}\tFramerate: ${this.config.framerate}fps`,
       `Note speed: ${this.config.notespeed}\tKeyboard height: ${this.config.keyh}px`,
       // `RAM used：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}M`,
@@ -167,7 +168,7 @@ export class StarryMidiVisualizer {
     const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
     const lastIndex = [0, 0];
     let renderedFrames = 0;
-    while (this.currentTime <= maxTime) {
+    while (renderedFrames < totalFrames) {
       for (let n = 0; n < lastIndex.length; n++) {
         let i = lastIndex[n];
         while (i < this.renderingNotes[n].length) {

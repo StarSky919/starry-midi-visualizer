@@ -1,5 +1,5 @@
 import { createCanvas } from 'canvas';
-import { Key } from './components.js';
+import { Colors, Key } from './components.js';
 
 export class Renderer {
   constructor(smv) {
@@ -93,7 +93,7 @@ export class Renderer {
     const ct = currentTick * this.pixelsPerTick;
     for (let i = index; i < notes.length; i++) {
       const note = notes[i];
-      const noteColor = this.smv.tracks[note.track].color;
+      const noteColor = this.colormode === 'channel' ? Colors[note.channel] : this.smv.tracks[note.track].color;
       if (note.start <= currentTick) {
         if (note.start + note.duration < currentTick) {
           note.played = true;
