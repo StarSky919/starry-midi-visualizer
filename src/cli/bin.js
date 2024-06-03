@@ -56,6 +56,7 @@ cli.option('colormode', '-c <mode> note color based on \'channel\' or \'track\' 
 });
 cli.option('border', 'apply borders to notes and disable highlight');
 cli.option('notespeed', '-s <ratio> pixPerTick = vHeight / 2 / TPQN * <ratio> (default: 1)', { transform: checkNumber(0.05) });
+cli.option('starttime', '-t <seconds> set start time of the song (default: -1)', { transform: checkNumber() });
 
 cli.example('smv song.mid');
 cli.example('smv -r 2560x1440 -k 208 -s 1.5');

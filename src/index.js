@@ -21,6 +21,7 @@ const defaultConfig = {
   colormode: 'channel',
   border: false,
   notespeed: 1,
+  starttime: -1,
 };
 
 const barFormat = 'Progress: :pct% (:current of :total frames) Time spent: :time';
@@ -92,9 +93,8 @@ export class StarryMidiVisualizer {
 
     if (index !== -1) {
       const tempo = this.tempos[index];
-      const tempoTime = tempo.time;
       const elapsedBeats = (tick - tempo.tick) / this.tpqn;
-      return tempoTime + (60 / tempo.bpm) * elapsedBeats;
+      return tempo.time + (60 / tempo.bpm) * elapsedBeats;
     } else {
       const beats = tick / this.tpqn;
       return (60 / 120) * beats;
@@ -106,8 +106,7 @@ export class StarryMidiVisualizer {
 
     if (index !== -1) {
       const tempo = this.tempos[index];
-      const tempoTime = tempo.time;
-      const elapsedTime = second - tempoTime;
+      const elapsedTime = second - tempo.time;
       const elapsedBeats = elapsedTime / (60 / tempo.bpm);
       return Math.round(tempo.tick + elapsedBeats * this.tpqn);
     } else {
@@ -129,7 +128,7 @@ export class StarryMidiVisualizer {
     console.log(`StarryMidiVisualizer ${version}`);
 
     this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.config.notespeed;
-    this.currentTime = -1000;
+    this.currentTime = this.config.starttime * 1000;
     const maxTime = this.songTime + 1000;
 
     console.log(formatOutput(
