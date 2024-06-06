@@ -12,7 +12,7 @@ import {
 import { EventTypes, Track } from './components.js';
 
 function error(msg) {
-  console.log(`Invalid or unsupported MIDI file${msg ? `: ${msg}` : ''}`);
+  console.log(`Error: Invalid or unsupported MIDI file${msg ? `: ${msg}` : ''}`);
   process.exit(0);
 }
 
