@@ -12,7 +12,8 @@ import {
 import { EventTypes, Track } from './components.js';
 
 function error(msg) {
-  return new Error(`Invalid MIDI file${msg ? `: ${msg}` : ''}`);
+  console.log(`Invalid or unsupported MIDI file${msg ? `: ${msg}` : ''}`);
+  process.exit(0);
 }
 
 export function parseMidi(arrayBuffer) {
@@ -24,20 +25,20 @@ export function parseMidi(arrayBuffer) {
   let pointer = 0;
 
   const size = Math.floor(data.size / 1024 / 1024 * 100) / 100;
-  console.log(`File size: ${size}M (${data.size})`);
+  console.log(`File size: ${size < 1 ? '<1' : size}M (${data.size})`);
 
   if (bytesToString(arrayBuffer.subarray(pointer, pointer + 4)) != 'MThd') {
-    throw error();
+    error();
   }
   pointer += 4;
 
   if (bytesToDec(arrayBuffer.subarray(pointer, pointer + 4)) != 6) {
-    throw error();
+    error();
   }
   pointer += 4;
 
   const type = bytesToDec(arrayBuffer.subarray(pointer, pointer + 2));
-  if (type !== 1) throw error();
+  if (type < 0 || type > 1) error('type ' + type);
   data.type = type;
   pointer += 2;
 
@@ -50,7 +51,7 @@ export function parseMidi(arrayBuffer) {
   const bar = new ProgressBar('Loading tracks: :current / :total (Total notes so far: :notes)', { total: data.trackCount, stream: process.stdout });
   while (pointer < arrayBuffer.length) {
     if (bytesToString(arrayBuffer.subarray(pointer, pointer + 4)) != 'MTrk') {
-      throw error();
+      error();
     }
     pointer += 4;
 
@@ -71,7 +72,7 @@ export function parseMidi(arrayBuffer) {
 
 export function parseEvents(arrayBuffer) {
   if (bytesToDec(arrayBuffer.subarray(arrayBuffer.length - 3, arrayBuffer.length)) != 0xFF2F00) {
-    throw error();
+    error();
   }
 
   const events = [];
@@ -134,7 +135,7 @@ export function parseEvents(arrayBuffer) {
             pointer += 5;
             break;
           default:
-            throw error();
+            error();
         }
         break;
       default:
@@ -160,7 +161,7 @@ export function parseEvents(arrayBuffer) {
             void 0;
           } else if (lastEventType <= 0xEF) {
             pointer++;
-          } else throw error();
+          } else error('unknown event type');
         } else {
           lastEventType = eventType;
           if (eventType <= 0x8F) {
@@ -184,7 +185,7 @@ export function parseEvents(arrayBuffer) {
           } else if (eventType <= 0xEF) {
             pointer += 2;
           } else {
-            throw error();
+            error('unknown event type');
           }
         }
     }
@@ -229,7 +230,7 @@ export function parseNotes(trackIndex, events) {
       );
       if (offIndex !== -1) {
         const noteOff = noteOffEvents.splice(offIndex, 1)[0];
-        const note = {};
+        const note = Object.create(null);
         note.channel = noteOn.channel;
         note.track = trackIndex;
         note.keyCode = noteOn.keyCode;
