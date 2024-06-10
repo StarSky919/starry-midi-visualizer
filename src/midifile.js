@@ -219,18 +219,14 @@ export function parseNotes(trackIndex, events) {
   }
   const notes = [];
   for (const _events of temp.filter(Boolean)) {
-    const noteOnEvents = _events.filter(event => event.type == EventTypes.NOTE_ON);
-    const noteOffEvents = _events.filter(event => event.type == EventTypes.NOTE_OFF);
+    const noteOnEvents = _events.filter(event => event.type == EventTypes.NOTE_ON && event.velocity > 0);
+    const noteOffEvents = _events.filter(event => event.type == EventTypes.NOTE_OFF || event.velocity === 0);
     while (noteOnEvents.length) {
       const noteOn = noteOnEvents.shift();
-      const offIndex = noteOffEvents.findIndex(
-        noteOff =>
-        noteOff.keyCode === noteOn.keyCode &&
-        noteOff.tick >= noteOn.tick
-      );
+      const offIndex = noteOffEvents.findIndex(noteOff => noteOff.tick >= noteOn.tick);
       if (offIndex !== -1) {
         const noteOff = noteOffEvents.splice(offIndex, 1)[0];
-        const note = Object.create(null);
+        const note = {};
         note.channel = noteOn.channel;
         note.track = trackIndex;
         note.keyCode = noteOn.keyCode;
