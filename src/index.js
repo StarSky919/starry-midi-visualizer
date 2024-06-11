@@ -17,7 +17,7 @@ const defaultConfig = {
   crf: 16,
   bgcolor: '#000000',
   keyh: 156,
-  line: null, // '#A02222'
+  line: null,
   colormode: 'channel',
   border: false,
   notespeed: 1,
@@ -136,7 +136,6 @@ export class StarryMidiVisualizer {
       `MIDI duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
       `Resolution: ${this.renderer.width}x${this.renderer.height}\tFramerate: ${this.config.framerate}fps`,
       `Note speed: ${this.config.notespeed}\tKeyboard height: ${this.config.keyh}px`,
-      // `RAM used：${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}M`,
     ));
     console.log('================');
 
@@ -150,15 +149,15 @@ export class StarryMidiVisualizer {
     this.firstPlay = false;
 
     const ffmpeg = spawn('ffmpeg', [
+      '-y',
+      '-hide_banner',
       '-f', 'image2pipe',
-      '-framerate', `${this.config.framerate}`,
+      '-s', this.config.resolution.join('x'),
+      '-r', this.config.framerate,
       '-i', '-',
       '-c:v', 'libx264',
-      '-crf', this.config.crf,
-      '-preset', 'ultrafast',
-      '-tune', 'zerolatency',
       '-pix_fmt', 'yuv420p',
-      '-y',
+      '-crf', this.config.crf,
       `${filename}`,
     ]);
 
@@ -169,7 +168,7 @@ export class StarryMidiVisualizer {
     const lastIndex = [0, 0];
     let renderedFrames = 0;
     while (renderedFrames < totalFrames) {
-      for (let n = 0; n < lastIndex.length; n++) {
+      for (let n = 0; n < 2; n++) {
         let i = lastIndex[n];
         while (i < this.renderingNotes[n].length) {
           if (!this.renderingNotes[n][i].played) break;
@@ -179,6 +178,7 @@ export class StarryMidiVisualizer {
       }
       this.renderer.render(this.currentTick, this.renderingNotes, lastIndex);
       ffmpeg.stdin.write(this.renderer.cav.toBuffer());
+
       this.currentTime += 1000 / this.config.framerate;
       renderedFrames++;
 
