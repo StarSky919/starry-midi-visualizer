@@ -72,7 +72,7 @@ yarn add starry-midi-visualizer
 
 ## 使用方法
 
-全局安装后，可以使用 `smv` 命令。
+全局安装后，可以使用 `smv` 和 `smvc` 命令。
 
 若不提供参数，程序将会扫描并列出当前目录下的所有 .mid 文件以供选择。
 
@@ -86,7 +86,7 @@ Options:
   -r, --resolution <value>   output video resolution (default: 1920x1080)
   -f, --framerate <fps>      output video framerate (default: 60)
   --crf <value>              ffmpeg crf (default: 16)
-  -o, --output <path>        output video file (default: <input filename>.mp4)
+  -o, --output <path>        output video file (default: <filename>.mp4)
   -b, --bgcolor <hex>        background color (default: 0x000000)
   -k, --keyh <pixels>        keyboard height (default: 156)
   -l, --line <hex>           shows a colored line on keyboard
@@ -100,6 +100,27 @@ Examples:
   smv song.mid
   smv -r 2560x1440 -k 208 -s 1.5
   smv song.mid -b 0xC0C0C0 --border -o ../Videos/song.mp4
+```
+
+```
+Usage:
+  smvc [options] [arguments]
+
+Options:
+  -h, --help                 print help (this message)
+  -v, --version              print version
+  -r, --resolution <value>   output video resolution (default: 720x60)
+  -f, --framerate <fps>      output video framerate (default: 60)
+  --crf <value>              ffmpeg crf (default: 16)
+  -o, --output <path>        output video file (default: <filename>_counter.mp4)
+  -F, --font <path>          the font file to use
+  -a, --align <hex>          text align (default: left)
+  -c, --txcolor <hex>        text color (default: 0xFFFFFF)
+  -b, --bgcolor <hex>        background color (default: 0xA0A0A0)
+  -w, --bdwidth <pixels>     border width (default: 2)
+  -B, --bdcolor <hex>        border color (default: 0x252525)
+  -t, --starttime <seconds>  set the start time offset (default: -1)
+  -d, --duration <seconds>   set the cut duration
 ```
 
 ### 设置内存限制
