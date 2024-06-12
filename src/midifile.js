@@ -230,7 +230,6 @@ export function parseNotes(trackIndex, events) {
         note.channel = noteOn.channel;
         note.track = trackIndex;
         note.keyCode = noteOn.keyCode;
-        note.velocity = noteOn.velocity;
         note.start = noteOn.tick;
         note.duration = noteOff.tick - noteOn.tick;
         note.triggered = note.played = false;

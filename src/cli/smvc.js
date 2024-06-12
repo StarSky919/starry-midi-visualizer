@@ -16,26 +16,26 @@ import {
 import StarryMidiVisualizer from '../index.js';
 
 const cwd = process.cwd();
-const cli = createCLI('smv');
+const cli = createCLI('smvc');
 
 cli.version(StarryMidiVisualizer.VERSION);
 
-cli.option('resolution', '-r <value> output video resolution (default: 1920x1080)', {
+cli.option('resolution', '-r <value> output video resolution (default: 720x60)', {
   transform(src) {
     const [w, h] = src.split('x').map(Number);
-    if (![w, h].every(v => v > 0)) throw 'please enter a correct value (e.g. 1920x1080)';
+    if (![w, h].every(v => v > 0)) throw 'please enter a correct value (e.g. 720x60)';
     return [w, h];
   },
 });
 cli.option('framerate', '-f <fps> output video framerate (default: 60)', { transform: checkNumber(0) });
 cli.option('crf', '<value> ffmpeg crf (default: 16)', { transform: checkNumber(0, 51) });
-cli.option('output', '-o <path> output video file (default: <input filename>.mp4)', {
+cli.option('output', '-o <path> output video file (default: <filename>_counter.mp4)', {
   async transform(src) {
     const fullPath = resolvePath(src);
     const exists = await fs.access(fullPath).then(() => true).catch(() => false);
     if (exists) {
       if (await isDirectory(fullPath)) {
-        throw `Error: '${fullPath}' is a directory`;
+        throw `'${fullPath}' is a directory`;
       }
       const { getInput, close } = createRLI();
       const input = await getInput(`'${fullPath}' already exists, overwrite? [y/N] `);
@@ -45,23 +45,19 @@ cli.option('output', '-o <path> output video file (default: <input filename>.mp4
     return fullPath;
   },
 });
-cli.option('bgcolor', '-b <hex> background color (default: 0x000000)', { transform: checkHexColor });
-cli.option('keyh', '-k <pixels> keyboard height (default: 156)', { transform: checkNumber(0) });
-cli.option('line', '-l <hex> shows a colored line on keyboard', { transform: checkHexColor });
-cli.option('colormode', '-c <mode> note color based on \'channel\' or \'track\' (default: channel)', {
+cli.option('font', '-F <path> the font file to use', { transform: checkFile });
+cli.option('align', '-a <hex> text align (default: left)', {
   transform(src) {
-    if (['track', 'channel'].includes(src.toLowerCase())) return src;
-    throw 'the value must be \'channel\' or \'track\'';
+    if (!['left', 'right'].includes(src)) throw 'the value must be \'left\' or \'right\'';
+    return src;
   },
 });
-cli.option('border', 'apply borders to notes and disable highlight');
-cli.option('notespeed', '-s <ratio> pixPerTick = vHeight / 2 / TPQN * <ratio> (default: 1)', { transform: checkNumber(0.05) });
+cli.option('txcolor', '-c <hex> text color (default: 0xFFFFFF)', { transform: checkHexColor });
+cli.option('bgcolor', '-b <hex> background color (default: 0xA0A0A0)', { transform: checkHexColor });
+cli.option('bdwidth', '-w <pixels> border width (default: 2)', { transform: checkNumber(1) });
+cli.option('bdcolor', '-B <hex> border color (default: 0x252525)', { transform: checkHexColor });
 cli.option('starttime', '-t <seconds> set the start time offset (default: -1)', { transform: checkNumber() });
 cli.option('duration', '-d <seconds> set the cut duration', { transform: checkNumber(1) });
-
-cli.example('smv song.mid');
-cli.example('smv -r 2560x1440 -k 208 -s 1.5');
-cli.example('smv song.mid -b 0xC0C0C0 --border -o ../Videos/song.mp4');
 
 const { args, options } = await cli.parse();
 
@@ -98,6 +94,6 @@ async function getFile() {
 
 const midiFile = await getFile();
 const fullPath = await checkFile(midiFile).catch(printAndExit);
-const smv = new StarryMidiVisualizer(options);
+const smv = new StarryMidiVisualizer.Counter(options);
 await smv.loadFile(fullPath);
-smv.render(options.output ?? `${path.basename(fullPath)}.mp4`);
+smv.render(options.output ?? `${path.basename(fullPath).replace(/.mid$/i, '')}_counter.mp4`);

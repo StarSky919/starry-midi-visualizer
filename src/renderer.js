@@ -1,7 +1,62 @@
+import { spawn } from 'node:child_process';
+import { Writable } from 'node:stream';
 import { createCanvas } from 'canvas';
 import { Colors, Key } from './components.js';
 
 export class Renderer {
+  static Counter = class {
+    constructor(smvc) {
+      const {
+        resolution,
+        framerate,
+        font,
+        align,
+        txcolor,
+        bgcolor,
+        bdwidth,
+        bdcolor,
+      } = smvc.config;
+
+      this.ffarg1 = `color=s=${resolution.join('x')}:c=${bgcolor}`;
+      this.ffarg2 = `drawtext=fontfile=${font}:text={COUNTER_TEXT}:fontsize=${resolution[1]}:fontcolor=${txcolor}:borderw=${bdwidth}:bordercolor=${bdcolor}:y=(h-text_h)/2${align === 'right' ? ':x=w-text_w' : ''}`;
+    }
+
+    render(currentTick, notes, index) {
+      let noteCount = index[1];
+      for (let j = index[0]; j < notes.length; j++) {
+        if (notes[j].start < currentTick) noteCount++;
+        else {
+          index[0] = j;
+          index[1] = noteCount;
+          break;
+        }
+      }
+
+      return new Promise(resolve => {
+        const ffmpeg = spawn('ffmpeg', [
+          '-v', 'error',
+          '-f', 'lavfi',
+          '-i', this.ffarg1,
+          '-vf', this.ffarg2.replace('{COUNTER_TEXT}', noteCount),
+          '-frames:v', '1',
+          '-f', 'rawvideo',
+          '-pix_fmt', 'rgba',
+          '-',
+        ]);
+        const chunks = [];
+
+        ffmpeg.stdout.pipe(new Writable({
+          write(chunk, encoding, callback) {
+            chunks.push(chunk);
+            callback();
+          },
+        }));
+
+        ffmpeg.stdout.on('end', () => resolve(Buffer.concat(chunks)));
+      });
+    }
+  };
+
   constructor(smv) {
     const {
       resolution,

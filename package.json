@@ -7,7 +7,8 @@
   "type": "module",
   "main": "./src/index.js",
   "bin": {
-    "smv": "./src/cli/bin.js"
+    "smv": "./src/cli/smv.js",
+    "smvc": "./src/cli/smvc.js"
   },
   "scripts": {
     "render": "node --max-old-space-size=4096 ./src/cli/bin.js"

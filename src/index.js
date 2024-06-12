@@ -11,25 +11,9 @@ import { Renderer } from './renderer.js';
 const pkgPath = path.resolve(import.meta.dirname, '../package.json');
 const { version } = JSON.parse(await fs.readFile(pkgPath));
 
-const defaultConfig = {
-  resolution: [1920, 1080],
-  framerate: 60,
-  crf: 16,
-  bgcolor: '#000000',
-  keyh: 156,
-  line: null,
-  colormode: 'channel',
-  border: false,
-  notespeed: 1,
-  starttime: -1,
-  duration: null,
-};
-
 const barFormat = 'Progress: :pct% (:current of :total frames) Time spent: :time';
 
-export class StarryMidiVisualizer {
-  static VERSION = version;
-
+class SMVBase {
   fileLoaded = false;
   size = 0;
   tpqn = 0;
@@ -45,15 +29,6 @@ export class StarryMidiVisualizer {
   firstPlay = true;
   config;
   renderer;
-
-  constructor(config) {
-    this.config = {
-      ...defaultConfig,
-      ...config,
-    };
-    this.renderer = new Renderer(this);
-    this.renderer.initialize();
-  }
 
   async loadFile(path) {
     const file = await fs.readFile(path);
@@ -119,6 +94,153 @@ export class StarryMidiVisualizer {
   get currentTick() {
     return this.secondToTick(this.currentTime / 1000);
   }
+}
+
+class Counter extends SMVBase {
+  static defaultConfig = {
+    resolution: [720, 60],
+    framerate: 60,
+    crf: 16,
+    align: 'left',
+    txcolor: '#FFFFFF',
+    bgcolor: '#A0A0A0',
+    bdwidth: 2,
+    bdcolor: '#252525',
+    starttime: -1,
+    duration: null,
+  };
+
+  constructor(config) {
+    super();
+    this.config = {
+      ...Counter.defaultConfig,
+      ...config,
+    };
+    this.renderer = new Renderer.Counter(this);
+  }
+
+  async render(filename) {
+    if (!this.fileLoaded) {
+      throw new Error('No file was loaded');
+    }
+
+    console.log('================');
+    console.log(`StarryMidiVisualizer.Counter ${version}`);
+
+    this.renderer.pixelsPerTick = this.renderer.height / 2 / this.tpqn * this.config.notespeed;
+    this.currentTime = this.config.starttime * 1000;
+    const maxTime = this.config.duration ? (this.currentTime + this.config.duration * 1000) : (this.songTime + 1000);
+
+    console.log(formatOutput(
+      `MIDI duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
+      `Resolution: ${this.config.resolution.join('x')}\tFramerate: ${this.config.framerate}fps`,
+    ));
+    console.log('================');
+
+    console.log('Preprocessing notes...');
+    if (!this.firstPlay) this.notes.forEach(note => {
+      note.triggered = note.played = false;
+    });
+    this.notes.sort((a, b) => a.start - b.start);
+    this.renderingNotes = this.notes;
+    this.firstPlay = false;
+
+    const ffmpeg = spawn('ffmpeg', [
+      '-y', '-hide_banner',
+      '-f', 'rawvideo',
+      '-pix_fmt', 'rgba',
+      '-s', this.config.resolution.join('x'),
+      '-r', this.config.framerate,
+      '-i', '-',
+      '-pix_fmt', 'yuv420p',
+      '-crf', this.config.crf,
+      '-c:v', 'libx264',
+      filename,
+    ]);
+
+    console.log('Rendering frames...');
+    const startTime = Date.now();
+    const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.config.framerate));
+    const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
+    const lastIndex = [0, 0];
+    let renderedFrames = 0;
+    while (renderedFrames < totalFrames) {
+      const result = await this.renderer.render(this.currentTick, this.renderingNotes, lastIndex);
+      ffmpeg.stdin.write(result);
+
+      this.currentTime += 1000 / this.config.framerate;
+      renderedFrames++;
+
+      const percent = Math.floor(renderedFrames / totalFrames * 1e4) / 1e2;
+      renderProgress.tick({
+        pct: percent.toFixed(2),
+        time: formatTime(Date.now() - startTime),
+      });
+    }
+    if (!renderProgress.complete) renderProgress.terminate();
+
+    console.log('Generating video...');
+    const startTime2 = Date.now();
+    const generateProgress = new ProgressBar(barFormat, { total: renderedFrames, stream: process.stdout });
+    let lastFrames;
+    ffmpeg.stderr.pipe(new Writable({
+      write(chunk, encoding, callback) {
+        const msg = chunk.toString();
+        if (msg.startsWith('frame')) {
+          const captures = /^frame=\s*(\d+)/.exec(msg);
+          if (captures) {
+            const frames = lastFrames = Number(captures[1]);
+            const percent = Math.floor(frames / renderedFrames * 1e4) / 1e2;
+            generateProgress.update(percent / 100, {
+              pct: percent.toFixed(2),
+              time: formatTime(Date.now() - startTime2),
+            });
+          }
+        }
+        callback();
+      },
+    }));
+    ffmpeg.stderr.on('end', () => {
+      if (lastFrames != renderedFrames) {
+        generateProgress.update(1, {
+          pct: '100.00',
+          time: formatTime(Date.now() - startTime2),
+        });
+      }
+      console.log(`Completed. Saved to '${filename}'`);
+    });
+    ffmpeg.stdin.end();
+  }
+}
+
+export class StarryMidiVisualizer extends SMVBase {
+  static VERSION = version;
+
+  static Counter = Counter;
+
+  static defaultConfig = {
+    resolution: [1920, 1080],
+    framerate: 60,
+    crf: 16,
+    bgcolor: '#000000',
+    keyh: 156,
+    line: null,
+    colormode: 'channel',
+    border: false,
+    notespeed: 1,
+    starttime: -1,
+    duration: null,
+  };
+
+  constructor(config) {
+    super();
+    this.config = {
+      ...StarryMidiVisualizer.defaultConfig,
+      ...config,
+    };
+    this.renderer = new Renderer(this);
+    this.renderer.initialize();
+  }
 
   async render(filename) {
     if (!this.fileLoaded) {
@@ -134,7 +256,7 @@ export class StarryMidiVisualizer {
 
     console.log(formatOutput(
       `MIDI duration: ${formatTime(this.songTime)}\tTPQN: ${this.tpqn}`,
-      `Resolution: ${this.renderer.width}x${this.renderer.height}\tFramerate: ${this.config.framerate}fps`,
+      `Resolution: ${this.config.resolution.join('x')}\tFramerate: ${this.config.framerate}fps`,
       `Note speed: ${this.config.notespeed}\tKeyboard height: ${this.config.keyh}px`,
     ));
     console.log('================');
@@ -158,7 +280,7 @@ export class StarryMidiVisualizer {
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
       '-crf', this.config.crf,
-      `${filename}`,
+      filename,
     ]);
 
     console.log('Rendering frames...');
