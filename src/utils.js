@@ -1,3 +1,7 @@
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
 export function decToHex(dec) {
   return ('0' + dec.toString(16)).slice(-2);
 }

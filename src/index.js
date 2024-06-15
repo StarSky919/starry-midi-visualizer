@@ -3,7 +3,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Writable } from 'node:stream';
 import ProgressBar from 'progress';
-import { search, formatTime, formatOutput } from './utils.js';
+import { sleep, search, formatTime, formatOutput } from './utils.js';
 import { Colors } from './components.js';
 import { parseMidi } from './midifile.js';
 import { Renderer } from './renderer.js';
@@ -156,9 +156,11 @@ class Counter extends SMVBase {
       '-crf', this.config.crf,
       '-c:v', 'libx264',
       filename,
-    ]);
+    ], { detached: true });
 
-    console.log('Rendering frames...');
+    console.log('Generating video...');
+    let rendering = true;
+    process.on('SIGINT', () => rendering = false);
     const startTime = Date.now();
     const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.config.framerate));
     const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
@@ -176,39 +178,12 @@ class Counter extends SMVBase {
         pct: percent.toFixed(2),
         time: formatTime(Date.now() - startTime),
       });
+      await sleep(0);
+      if (!rendering) break;
     }
     if (!renderProgress.complete) renderProgress.terminate();
 
-    console.log('Generating video...');
-    const startTime2 = Date.now();
-    const generateProgress = new ProgressBar(barFormat, { total: renderedFrames, stream: process.stdout });
-    let lastFrames;
-    ffmpeg.stderr.pipe(new Writable({
-      write(chunk, encoding, callback) {
-        const msg = chunk.toString();
-        if (msg.startsWith('frame')) {
-          const captures = /^frame=\s*(\d+)/.exec(msg);
-          if (captures) {
-            const frames = lastFrames = Number(captures[1]);
-            const percent = Math.floor(frames / renderedFrames * 1e4) / 1e2;
-            generateProgress.update(percent / 100, {
-              pct: percent.toFixed(2),
-              time: formatTime(Date.now() - startTime2),
-            });
-          }
-        }
-        callback();
-      },
-    }));
-    ffmpeg.stderr.on('end', () => {
-      if (lastFrames != renderedFrames) {
-        generateProgress.update(1, {
-          pct: '100.00',
-          time: formatTime(Date.now() - startTime2),
-        });
-      }
-      console.log(`Completed. Saved to '${filename}'`);
-    });
+    ffmpeg.stderr.on('end', () => console.log(`Completed. Saved to '${filename}'`));
     ffmpeg.stdin.end();
   }
 }
@@ -281,9 +256,11 @@ export class StarryMidiVisualizer extends SMVBase {
       '-pix_fmt', 'yuv420p',
       '-crf', this.config.crf,
       filename,
-    ]);
+    ], { detached: true });
 
     console.log('Rendering frames...');
+    let rendering = true;
+    process.on('SIGINT', () => rendering = false);
     const startTime = Date.now();
     const totalFrames = Math.ceil((maxTime - this.currentTime) / (1000 / this.config.framerate));
     const renderProgress = new ProgressBar(barFormat, { total: totalFrames, stream: process.stdout });
@@ -309,6 +286,8 @@ export class StarryMidiVisualizer extends SMVBase {
         pct: percent.toFixed(2),
         time: formatTime(Date.now() - startTime),
       });
+      await sleep(0);
+      if (!rendering) break;
     }
     if (!renderProgress.complete) renderProgress.terminate();
 
