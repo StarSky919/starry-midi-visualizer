@@ -23,10 +23,10 @@ export class Renderer {
 
     render(currentTick, notes, index) {
       let noteCount = index[1];
-      for (let j = index[0]; j < notes.length; j++) {
-        if (notes[j].start < currentTick) noteCount++;
+      for (let i = index[0]; i < notes.length; i++) {
+        if (notes[i].start < currentTick) noteCount++;
         else {
-          index[0] = j;
+          index[0] = i;
           index[1] = noteCount;
           break;
         }
@@ -177,6 +177,9 @@ export class Renderer {
   }
 
   drawKeyboard() {
+    this.ctx.fillStyle = this.bgcolor;
+    this.ctx.fillRect(0, this.ky, this.width, this.keyh);
+
     this.whiteKeys.forEach(key => this.drawKeys(key));
     this.blackKeys.forEach(key => this.drawKeys(key));
 
